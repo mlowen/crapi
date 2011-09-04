@@ -5,12 +5,7 @@
 			Location(url = "/", addtoken = false);
 		}
 		
-		crapi = new crapi.Core();
-		crapi.addRoute(route = "/{controller}");
-		crapi.addRoute(route = "/{controller}/{id}");
-		crapi.addRoute(route = "/{controller}/{id}/{action}");
-		
-		route = crapi.GetRoute(cgi.PATH_INFO);
+		route = application.crapi.GetRoute(cgi.PATH_INFO);
 													
 		// Ensure that the controller exists				
 		if(not FileExists("#ExpandPath('/')#/controllers/#route.controller#.cfc"))
@@ -54,7 +49,7 @@
 			else
 				result = call(argumentcollection = route.args);
 			
-			formatter = crapi.GetFormatter("application/json");
+			formatter = application.crapi.GetFormatter("application/json");
 			
 			WriteOutput(formatter.Serialize(result));
 		}			
@@ -67,7 +62,7 @@
 		context = GetPageContext().GetResponse();
 		context.GetResponse().SetStatus(errorCode);
 
-		formatter = crapi.GetFormatter("application/json");
+		formatter = application.crapi.GetFormatter("application/json");
 		
 		WriteOutput(formatter.Serialize(ex.message));
 	}
