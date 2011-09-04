@@ -1,57 +1,74 @@
-<html>
-	<head>
-		<title>CRAPI</title>
-	</head>
-	<body>
-		<cftry>
-			<cfscript>
-					
-				if(StructKeyExists(url, "reset")) {
-					ApplicationStop();
-					Location(url = "/", addtoken = false);
-				}
-				
-				crapi = new crapi.Core();
-				crapi.addRoute(route = "/{controller}");
-				crapi.addRoute(route = "/{controller}/{id}");
-				crapi.addRoute(route = "/{controller}/{id}/{action}", controller = "{controller}", action = "{action}");
-				
-				WriteDump(crapi);
-				
-				route = crapi.GetRoute(cgi.PATH_INFO);
-				
-				WriteDump(route);
-				
-				/*
-				
-				// Create the Controller
-				controller = CreateObject("component", "controllers.#route.controller#");
-				
-				if(not StructKeyExists(controller, route.action))
-					Throw(type = "crapi", errorcode = 404, message = "Unable to find handler.");
-				
-				meta = GetMetaData(controller[route.action]);
-				methods = [ "get" ];
-				
-				if(StructKeyExists(meta, "crapi:method"))
-					methods = ListToArray(lcase(meta["crapi:method"]));
-								
-				if(not ArrayContains(methods, lcase(cgi.REQUEST_METHOD)))
-					throw(type = "crapi", errorcode = 405, message = "Handler does not accept that HTTP method.");
-				*/
-				
-				// Now we know that the call exists and is good.
-			</cfscript>
+<cfscript>
+	try {
+		if(StructKeyExists(url, "reset")) {
+			ApplicationStop();
+			Location(url = "/", addtoken = false);
+		}
+		
+		crapi = new crapi.Core();
+		crapi.addRoute(route = "/{controller}");
+		crapi.addRoute(route = "/{controller}/{id}");
+		crapi.addRoute(route = "/{controller}/{id}/{action}");
+		
+		route = crapi.GetRoute(cgi.PATH_INFO);
+													
+		// Ensure that the controller exists				
+		if(not FileExists("#ExpandPath('/')#/controllers/#route.controller#.cfc"))
+			throw(type = "crapi", errorcode = 404, message = "Controller does not exist.");
+		
+		// Create the Controller
+		controller = CreateObject("component", "controllers.#route.controller#");
+		
+		if(not StructKeyExists(controller, route.action))
+			Throw(type = "crapi", errorcode = 404, message = "Unable to find handler.");
+		
+		call = controller[route.action];
+		meta = GetMetaData(call);
+		methods = [ "get"];
+		
+		if(StructKeyExists(meta, "crapi:method"))
+			methods = ListToArray(lcase(meta["crapi:method"]));
+						
+		if(not ArrayContains(methods, lcase(cgi.REQUEST_METHOD)))
+			throw(type = "crapi", errorcode = 405, message = "Handler does not accept that HTTP method.");
+		
+		// Now we know that the call exists and is good.				
+		returnType = "void";
+		
+		if(StructKeyExists(meta, "returntype"))
+			returnType = meta.returntype;
+		
+		if(returnType eq "void") {
+			if(StructIsEmpty(route.args))
+				call();
+			else
+				call(argumentcollection = route.args);
 			
-			<cfcatch type="any">
-				<cfset errorCode = 500 />
-				<cfif cfcatch.type eq "crapi">
-					<cfset errorCode = cfcatch.ErrorCode />
-				</cfif>
-				
-				<cfoutput>Error Code: #errorCode#</cfoutput>
-				<cfdump var="#cfcatch#" />
-			</cfcatch>
-		</cftry>
-	</body>
-</html>
+			context = GetPageContext().GetResponse();
+			context.GetResponse().SetStatus(204);
+		} else {
+			result = "";
+			
+			if(StructIsEmpty(route.args))
+				result = call();
+			else
+				result = call(argumentcollection = route.args);
+			
+			formatter = crapi.GetFormatter("application/json");
+			
+			WriteOutput(formatter.Serialize(result));
+		}			
+	} catch(Any ex) {
+		errorCode = 500;
+		
+		if(ex.type eq "crapi")
+			errorCode = ex.ErrorCode;
+		
+		context = GetPageContext().GetResponse();
+		context.GetResponse().SetStatus(errorCode);
+
+		formatter = crapi.GetFormatter("application/json");
+		
+		WriteOutput(formatter.Serialize(ex.message));
+	}
+</cfscript>
