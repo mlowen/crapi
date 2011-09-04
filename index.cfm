@@ -9,19 +9,20 @@
 				if(StructKeyExists(url, "reset")) {
 					ApplicationStop();
 					Location(url = "/", addtoken = false);
-				}				
+				}
 				
-				route = "/{controller}/{action}";
-				regex = "^" & REReplaceNoCase(route, "{([a-z0-9]+)}", "([a-z0-9]+)", "all");
+				crapi = new crapi.Core();
+				crapi.addRoute(route = "/{controller}");
+				crapi.addRoute(route = "/{controller}/{id}");
+				crapi.addRoute(route = "/{controller}/{id}/{action}", controller = "{controller}", action = "{action}");
 				
-				WriteDump(REMatchNoCase(regex, "/foo/bar"))
+				WriteDump(crapi);
 				
+				route = crapi.GetRoute(cgi.PATH_INFO);
+				
+				WriteDump(route);
 				
 				/*
-				crapi = new crapi.Core();
-				crapi.addRoute(route = "/{controller}/{action}");
-				
-				route = crapi.GetRoute(cgi.PATH);
 				
 				// Create the Controller
 				controller = CreateObject("component", "controllers.#route.controller#");
