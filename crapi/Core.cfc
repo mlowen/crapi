@@ -3,6 +3,11 @@
 	<!--- CRAPI Functions --->
 	<cffunction name="init" access="public" returntype="any">
 		<cfset this.routes = [] />
+		<cfset this.formatters = {} />
+		<cfset this.defaultFormat = "application/json" />
+		
+		<!--- Add the default formatters --->
+		<cfset this.formatters["application/json"] = new crapi.formatters.JSONFormatter() />
 		
 		<cfreturn this />
 	</cffunction>
@@ -92,5 +97,16 @@
 			
 			throw(type = "crapi", message = "Unable to find matching route.", errorcode = 404);
 		</cfscript>
+	</cffunction>
+
+	<!--- Formatters --->
+	<cffunction name="getFormatter" access="public" returntype="any">
+		<cfargument name="contentType" type="string" required="true" />
+		
+		<cfif StructKeyExists(this.formatters, arguments.contentType)>
+			<cfreturn this.formatters[arguments.contentType] />
+		</cfif>
+		
+		<cfthrow type="crapi" errorcode="415" message="Unknown format #arguments.contentType#." />
 	</cffunction>
 </cfcomponent>
