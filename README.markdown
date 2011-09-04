@@ -6,7 +6,7 @@ _A Coldfusion REST API framework._
 The Basics
 ----------
 
-This framework was inspired by the MVC frameworks that I have had a chance to play around with and hopefully takes some of the good points away from them.  One of the main ideas behind this framework was to be as lightweight and unobtrusive as possible, so you can get on and code.  To start using just drop the files into your project and start adding cfcs to the controllers directory.  When making any calls the path must be appended to the index.cfm, an example call which can be used to test the installation of crapi is:
+This framework was inspired by the MVC frameworks that I have had a chance to play around with and hopefully takes some of the good points from them.  One of the main ideas behind this framework was to be as lightweight and unobtrusive as possible, so you can get on and code.  To start using just drop the files into your project and start adding cfcs to the controllers directory.  When making any calls the path must be appended to the index.cfm, an example call which can be used to test the installation of crapi is:
 
 `http://[site url]/index.cfm/hello`
 
@@ -16,9 +16,9 @@ If you want prettier URL's you can remove the index.cfm portion with rewrite rul
 
 Routes are how the framework knows what functionality it should be executing.  There are three default routes which are predefined in crapi, they are:
 
-* /{controller}
-* /{controller}/{id}
-* /{controller}/{id}/{action}
+* `/{controller}`
+* `/{controller}/{id}`
+* `/{controller}/{id}/{action}`
 
 The controller keyword corresponds to a CFC in the controllers folder and the action keyword corresponds to the function which should be called.  In the cases where no function is specified then the framework falls back to calling a function called 'default' in the controller.
 
